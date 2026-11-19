@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>招聘数据看板 · 演示样例</title>
+<style>
+:root{
+  --bg:#fff; --soft:#F7F7F5; --tint:#F0F0ED; --line:#E6E7E7; --line2:#EFEFEC;
+  --ink:#1D1F21; --ink2:#5E6165; --ink3:#8A8D91;
+  --sidebar:#F5F5F3; --mint:#3FA593; --mint-soft:#E2F0EC;
+  --warn:#C8814A; --warn-soft:#F7E9D8; --danger:#B0413E; --danger-soft:#F4DEDD;
+  --r:10px; --rl:16px;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --font:system-ui,-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scrollbar-gutter:stable}
+body{font-family:var(--font);font-size:14px;line-height:1.55;color:var(--ink);background:var(--bg);
+  -webkit-font-smoothing:antialiased;letter-spacing:.005em}
+.app{display:grid;grid-template-columns:212px 1fr;min-height:100vh;
+  background:linear-gradient(to right,var(--sidebar) 0 212px,#fff 212px)}
+
+/* 侧栏 */
+.sidebar{background:transparent;border-right:1px solid var(--line);padding:22px 14px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;align-self:start}
+.brand{font-size:15px;font-weight:600;letter-spacing:.02em;padding:0 8px 20px}
+.brand small{display:block;font-size:11.5px;font-weight:400;color:var(--ink3);margin-top:3px;letter-spacing:.04em}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav-item{appearance:none;border:0;background:transparent;text-align:left;font:inherit;font-size:13.5px;
+  color:var(--ink2);padding:8px 10px;border-radius:8px;cursor:pointer;transition:background .16s var(--ease),color .16s var(--ease)}
+.nav-item:hover{background:#EBEBE7;color:var(--ink)}
+.nav-item.is-active{background:#E4E4DF;color:var(--ink);font-weight:500}
+.nav-item[disabled]{opacity:.38;cursor:default}
+.sidebar-foot{margin-top:auto;padding:12px 10px 0;border-top:1px solid var(--line);font-size:12px;color:var(--ink3)}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--mint);margin-right:6px;vertical-align:middle}
+
+/* 主区 */
+.main{padding:32px 40px 72px;max-width:1180px}
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:26px}
+h1{font-size:26px;font-weight:600;letter-spacing:-.01em}
+.sub{color:var(--ink3);font-size:13px;margin-top:5px}
+.badge{font-size:11.5px;padding:5px 10px;border-radius:100px;background:var(--tint);color:var(--ink2);white-space:nowrap;letter-spacing:.02em}
+.badge.mint{background:var(--mint-soft);color:#2E7F71}
+
+.view{display:none;animation:in .34s var(--ease)}
+.view.on{display:block}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* 指标卡 */
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.card{background:var(--soft);border-radius:var(--r);padding:16px 18px}
+.card .k{font-size:12px;color:var(--ink3);letter-spacing:.03em}
+.card .v{font-size:26px;font-weight:600;margin-top:8px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.card .d{font-size:12px;margin-top:6px;color:var(--ink3)}
+.up{color:#2E7F71}.down{color:var(--danger)}
+
+.conclusion{display:flex;gap:10px;align-items:flex-start;background:#FCFCFB;border:1px solid var(--line);
+  border-radius:var(--r);padding:14px 16px;margin-bottom:26px;font-size:13.5px;line-height:1.65}
+.conclusion b{font-weight:600}
+.tag{flex:none;font-size:11px;padding:2px 8px;border-radius:5px;background:var(--warn-soft);color:#8A5426;margin-top:2px}
+
+/* 漏斗 */
+.sec-title{font-size:13px;font-weight:600;color:var(--ink2);letter-spacing:.04em;margin:0 0 14px}
+.funnel{display:flex;flex-direction:column;gap:9px;margin-bottom:34px}
+.frow{display:grid;grid-template-columns:76px 1fr 92px;align-items:center;gap:14px;font-size:13px}
+.frow .lb{color:var(--ink2)}
+.bar{height:26px;background:var(--tint);border-radius:6px;overflow:hidden;position:relative}
+.bar i{display:block;height:100%;background:#D9D9D4;border-radius:6px;transform-origin:left;animation:grow .7s var(--ease) both}
+.frow:nth-child(1) .bar i{background:#3A3D42}
+.frow:nth-child(2) .bar i{background:#5C6066}
+.frow:nth-child(3) .bar i{background:#8A8E93}
+.frow:nth-child(4) .bar i{background:var(--mint)}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.frow .num{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink2)}
+.frow .num b{color:var(--ink);font-weight:600}
+
+/* 表格 */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:500;color:var(--ink3);font-size:12px;letter-spacing:.03em;padding:0 12px 9px;border-bottom:1px solid var(--line)}
+td{padding:11px 12px;border-bottom:1px solid var(--line2);font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+td.name{font-weight:500}
+.pill{font-size:11.5px;padding:2px 8px;border-radius:5px;background:var(--tint);color:var(--ink2)}
+.pill.ok{background:var(--mint-soft);color:#2E7F71}
+.pill.warn{background:var(--warn-soft);color:#8A5426}
+
+/* 人才库 */
+.ask{background:var(--soft);border-radius:var(--rl);padding:18px;margin-bottom:16px}
+.ask-row{display:flex;gap:10px}
+input#q{flex:1;font:inherit;font-size:14px;padding:11px 14px;border:1px solid var(--line);border-radius:9px;background:#fff;
+  color:var(--ink);outline:none;transition:border-color .16s,box-shadow .16s}
+input#q:focus{border-color:#C9CACB;box-shadow:0 0 0 3px rgba(41,45,50,.05)}
+.btn{font:inherit;font-size:13.5px;padding:11px 20px;border:0;border-radius:9px;background:var(--ink);color:#fff;cursor:pointer;
+  transition:opacity .16s var(--ease),transform .16s var(--ease)}
+.btn:hover{opacity:.86}.btn:active{transform:scale(.985)}
+.hint{font-size:12px;color:var(--ink3);margin-top:10px}
+
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0 0;min-height:0}
+.chip{font-size:12.5px;padding:5px 11px;border-radius:100px;background:#fff;border:1px solid var(--line);color:var(--ink2);
+  animation:pop .3s var(--ease) both}
+.chip i{font-style:normal;color:var(--ink3);margin-right:5px}
+@keyframes pop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+
+.results{margin-top:22px}
+.rcard{border:1px solid var(--line);border-radius:var(--rl);padding:18px 20px;margin-bottom:11px;animation:in .38s var(--ease) both}
+.rcard:nth-child(2){animation-delay:.06s}
+.rcard:nth-child(3){animation-delay:.12s}
+.rhead{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:4px}
+.rname{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.rmeta{font-size:12.5px;color:var(--ink3)}
+.evi{list-style:none;margin-top:12px;display:flex;flex-direction:column;gap:7px}
+.evi li{font-size:13px;color:var(--ink2);padding-left:18px;position:relative;line-height:1.6}
+.evi li::before{content:"";position:absolute;left:2px;top:8px;width:5px;height:5px;border-radius:50%;background:var(--mint)}
+.evi li.unk::before{background:transparent;border:1px dashed var(--ink3)}
+.unk{color:var(--ink3)}
+.rfoot{margin-top:13px;padding-top:12px;border-top:1px solid var(--line2);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--ink3)}
+.link{color:#2E7F71;text-decoration:none;border-bottom:1px solid transparent;transition:border-color .15s}
+.link:hover{border-color:#2E7F71}
+.loading{font-size:13px;color:var(--ink3);padding:18px 2px;display:none}
+.loading.on{display:block}
+.spin{display:inline-block;width:11px;height:11px;border:1.6px solid var(--line);border-top-color:var(--ink3);border-radius:50%;
+  animation:sp .7s linear infinite;margin-right:8px;vertical-align:-1px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.note{margin-top:24px;font-size:12px;color:var(--ink3);line-height:1.7;border-top:1px solid var(--line2);padding-top:14px}
+
+@media(max-width:900px){
+  .app{grid-template-columns:1fr}
+  .sidebar{position:static;height:auto;flex-direction:row;align-items:center;overflow-x:auto;padding:12px}
+  .brand{padding:0 14px 0 4px;white-space:nowrap}.brand small{display:none}
+  .nav{flex-direction:row}.sidebar-foot{display:none}
+  .main{padding:22px 18px 60px}
+  .cards{grid-template-columns:repeat(2,1fr)}
+  h1{font-size:22px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">招聘数据看板<small>实时招聘工作台 · 演示</small></div>
+    <nav class="nav">
+      <button class="nav-item is-active" data-view="overview">总览</button>
+      <button class="nav-item" data-view="jobs">岗位漏斗</button>
+      <button class="nav-item" data-view="talent">人才库 AI 助手</button>
+      <button class="nav-item" disabled>团队任务</button>
+    </nav>
+    <div class="sidebar-foot"><span class="dot"></span>演示环境 · 数据均为虚构</div>
+  </aside>
+
+  <main class="main">
+    <div class="page-head">
+      <div>
+        <h1 id="ttl">总览</h1>
+        <p class="sub" id="stl">2026 年 11 月 · 全公司招聘数据</p>
+      </div>
+      <span class="badge mint">Demo · 脱敏样例</span>
+    </div>
+
+    <!-- 总览 -->
+    <section class="view on" id="v-overview">
+      <div class="cards">
+        <div class="card"><div class="k">在招岗位</div><div class="v">42</div><div class="d">覆盖 9 个业务部门</div></div>
+        <div class="card"><div class="k">本月新增简历</div><div class="v">1,286</div><div class="d"><span class="up">↑ 23.4%</span> 环比上月</div></div>
+        <div class="card"><div class="k">面试转化率</div><div class="v">18.4%</div><div class="d"><span class="down">↓ 6.1pct</span> 环比上月</div></div>
+        <div class="card"><div class="k">已发 Offer</div><div class="v">12</div><div class="d">平均周期 26 天</div></div>
+      </div>
+
+      <div class="conclusion">
+        <span class="tag">结论</span>
+        <div>简历量涨 23%，但初筛通过率掉了 6 个百分点，缺口集中在研发岗：新增流量里 <b>41%</b> 来自放宽后的 JD，匹配度随之下降。建议先收紧研发岗的筛选词，再看两周转化是否回落。</div>
+      </div>
+
+      <p class="sec-title">招聘漏斗 · 本月</p>
+      <div class="funnel">
+        <div class="frow"><span class="lb">简历</span><div class="bar"><i style="width:100%"></i></div><span class="num"><b>1,286</b></span></div>
+        <div class="frow"><span class="lb">初筛通过</span><div class="bar"><i style="width:32%"></i></div><span class="num"><b>412</b> <span style="color:var(--ink3)">32%</span></span></div>
+        <div class="frow"><span class="lb">进入面试</span><div class="bar"><i style="width:14.5%"></i></div><span class="num"><b>186</b> <span style="color:var(--ink3)">14.5%</span></span></div>
+        <div class="frow"><span class="lb">Offer</span><div class="bar"><i style="width:4.2%"></i></div><span class="num"><b>12</b> <span style="color:var(--ink3)">0.9%</span></span></div>
+      </div>
+
+      <p class="sec-title">HR 对比</p>
+      <table>
+        <thead><tr><th>HR</th><th>负责岗位</th><th>新增简历</th><th>面试</th><th>Offer</th><th>简历→面试</th></tr></thead>
+        <tbody>
+          <tr><td class="name">HR 甲</td><td>研发 / 测试</td><td>486</td><td>71</td><td>5</td><td><span class="pill ok">14.6%</span></td></tr>
+          <tr><td class="name">HR 乙</td><td>销售 / 客服</td><td>412</td><td>68</td><td>4</td><td><span class="pill ok">16.5%</span></td></tr>
+          <tr><td class="name">HR 丙</td><td>产品 / 运营</td><td>238</td><td>32</td><td>2</td><td><span class="pill warn">13.4%</span></td></tr>
+          <tr><td class="name">HR 丁</td><td>职能</td><td>150</td><td>15</td><td>1</td><td><span class="pill">10.0%</span></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 岗位漏斗 -->
+    <section class="view" id="v-jobs">
+      <p class="sec-title">按岗位 · 本月进度</p>
+      <table>
+        <thead><tr><th>岗位</th><th>部门</th><th>HC</th><th>简历</th><th>面试</th><th>Offer</th><th>进度</th></tr></thead>
+        <tbody>
+          <tr><td class="name">后端工程师</td><td>研发中心</td><td>8</td><td>312</td><td>46</td><td>3</td><td><span class="pill warn">37.5%</span></td></tr>
+          <tr><td class="name">企业软件销售</td><td>销售部</td><td>12</td><td>288</td><td>52</td><td>5</td><td><span class="pill ok">41.7%</span></td></tr>
+          <tr><td class="name">产品经理</td><td>产品部</td><td>4</td><td>176</td><td>22</td><td>1</td><td><span class="pill warn">25.0%</span></td></tr>
+          <tr><td class="name">客户成功</td><td>客户成功部</td><td>6</td><td>204</td><td>31</td><td>2</td><td><span class="pill">33.3%</span></td></tr>
+          <tr><td class="name">测试工程师</td><td>研发中心</td><td>5</td><td>186</td><td>24</td><td>1</td><td><span class="pill warn">20.0%</span></td></tr>
+          <tr><td class="name">数据分析</td><td>数据部</td><td>3</td><td>120</td><td>11</td><td>0</td><td><span class="pill">0%</span></td></tr>
+        </tbody>
+      </table>
+      <p class="note">进度 = Offer / HC。数据取自招聘系统小时同步，缺字段的岗位在这里显示为空，不做补齐估算。</p>
+    </section>
+
+    <!-- 人才库 -->
+    <section class="view" id="v-talent">
+      <div class="ask">
+        <div class="ask-row">
+          <input id="q" value="找在字节跳动做过 3 年以上后端、本科以上、现在还在职的">
+          <button class="btn" id="go">搜索</button>
+        </div>
+        <p class="hint">用一句话描述你要找的人。系统会先把话拆成明确条件，拆不准就直说，不猜。</p>
+        <div class="chips" id="chips"></div>
+      </div>
+
+      <div class="loading" id="loading"><span class="spin"></span>正在解析条件并检索人才库…</div>
+
+      <div class="results" id="results"></div>
+
+      <p class="note">
+        每条结果都给依据：命中的是简历里的哪段经历、哪个字段；日期不全或字段缺失时标为「未知」，不按推测填。搜索只返回账号原本就有权限查看的人选，权限校验失败即关闭，不提示存在多少人。
+      </p>
+    </section>
+  </main>
+</div>
+
+<script>
+const META = {
+  overview:['总览','2026 年 11 月 · 全公司招聘数据'],
+  jobs:['岗位漏斗','按岗位拆开看，缺数据的显示为空'],
+  talent:['人才库 AI 助手','用一句话找人，给出依据和未知项']
+};
+const chips=[['最近公司','字节跳动'],['工作年限','≥ 3 年'],['职能','后端开发'],['学历','本科及以上'],['在职状态','在职']];
+const people=[
+  {name:'林 * 洋',meta:'男 · 本科 · 北京 · 最近更新 11-12',evi:[
+    ['字节跳动 · 后端开发工程师 · 2021.03 – 至今 · 5 年 8 个月',0],
+    ['经历描述含「负责交易链路服务治理，QPS 峰值 8k」',0],
+    ['学历：本科 · 计算机科学与技术',0]],unk:'期望薪资、当前职级：简历未提供'},
+  {name:'陈 * 伟',meta:'男 · 硕士 · 杭州 · 最近更新 10-28',evi:[
+    ['字节跳动 · 服务端开发 · 2022.07 – 2024.11 · 2 年 4 个月',0],
+    ['总工作年限 6 年 2 个月（含前一段经历）',0],
+    ['结束日期距今 12 个月，在职状态：未知',1]],unk:'最近一段是否在职无明确记录，按未知处理'},
+  {name:'吴 * 琳',meta:'女 · 本科 · 上海 · 最近更新 11-03',evi:[
+    ['字节跳动（外包）· 后端开发 · 2020.09 – 2024.02',1],
+    ['名称含「外包」，按规则默认排除，此处仅列出以备人工确认',1]],unk:'外包经历是否计入目标公司年限：规则排除，未计入'}
+];
+let cur='overview';
+document.querySelectorAll('.nav-item[data-view]').forEach(b=>{
+  b.onclick=()=>{
+    cur=b.dataset.view;
+    document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('is-active',x===b));
+    document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+cur));
+    document.getElementById('ttl').textContent=META[cur][0];
+    document.getElementById('stl').textContent=META[cur][1];
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+});
+function renderChips(){
+  const box=document.getElementById('chips');
+  box.innerHTML='';
+  chips.forEach((c,i)=>{
+    const s=document.createElement('span');
+    s.className='chip';
+    s.style.animationDelay=(i*45)+'ms';
+    s.innerHTML='<i>'+c[0]+'</i>'+c[1];
+    box.appendChild(s);
+  });
+}
+function renderPeople(){
+  const box=document.getElementById('results');
+  box.innerHTML='';
+  people.forEach(p=>{
+    const d=document.createElement('div');
+    d.className='rcard';
+    let li=p.evi.map(e=>'<li class="'+(e[1]?'unk':'')+'">'+e[0]+'</li>').join('');
+    d.innerHTML='<div class="rhead"><span class="rname">'+p.name+'</span><span class="rmeta">'+p.meta+'</span></div>'
+      +'<ul class="evi">'+li+'</ul>'
+      +'<div class="rfoot"><span>未知项：'+p.unk+'</span><a class="link" href="#" onclick="return false">在招聘系统打开 →</a></div>';
+    box.appendChild(d);
+  });
+}
+document.getElementById('go').onclick=()=>{
+  document.getElementById('results').innerHTML='';
+  document.getElementById('chips').innerHTML='';
+  const l=document.getElementById('loading');
+  l.classList.add('on');
+  setTimeout(()=>{l.classList.remove('on');renderChips();setTimeout(renderPeople,180);},760);
+};
+document.getElementById('q').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('go').click();});
+renderChips();renderPeople();
+</script>
+</body>
+</html>
